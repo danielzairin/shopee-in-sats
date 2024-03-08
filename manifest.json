@@ -8,5 +8,6 @@
       "matches": ["*://*.shopee.com.my/user/purchase/order*"],
       "js": ["shopee-in-sats.js"]
     }
-  ]
+  ],
+  "permissions": ["find", "tabs"]
 }
