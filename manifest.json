@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "content_scripts": [
     {
-      "matches": ["*://*.shopee.com.my/*"],
+      "matches": ["*://*.shopee.com.my/user/purchase/order*"],
       "js": ["shopee-in-sats.js"]
     }
   ]
