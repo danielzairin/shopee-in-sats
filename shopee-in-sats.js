@@ -1,4 +1,4 @@
-function main() {
+async function main() {
   /**@type {Date | null} */
   let date = null;
 
@@ -9,9 +9,12 @@ function main() {
       continue;
     }
 
-    const parsedDate = Date.parse(elem.textContent);
-    if (!isNaN(parsedDate)) {
-      date = parsedDate;
+    // Regex that matches DD-MM-YYYY
+    const dateRegex = /(\d{2})-(\d{2})-(\d{4})/;
+    const match = elem.textContent.match(dateRegex);
+    if (match !== null) {
+      const [day, month, year] = match[0].split("-").map(Number);
+      date = new Date(year, month - 1, day);
       break;
     }
   }
@@ -21,7 +24,7 @@ function main() {
     return;
   }
 
-  const btcPrice = getBTCPriceOnDate(date);
+  const btcPrice = await getBTCPriceOnDate(date);
   const satsPerRinggit = Math.floor((1 / btcPrice) * 100_000_000);
 
   // Select all 'line item' elements
@@ -48,11 +51,14 @@ function main() {
 /**
  * Returns the price of 1 bitcoin in ringgit on a certain date.
  * @param {Date} date
- * @returns {number}
+ * @returns {Promise<number>}
  */
-function getBTCPriceOnDate(date) {
-  // TODO: Get actual price from somewhere
-  const price = date.valueOf() / 5_000_000;
+async function getBTCPriceOnDate(date) {
+  const res = await fetch(
+    // TODO: Configure the base URL
+    `http://localhost:8787/${formatDateToYYYYMMDD(date)}`
+  );
+  const { open: price } = await res.json();
   return price;
 }
 
@@ -68,6 +74,17 @@ function toSats(str, satsPerRinggit) {
   return str.replaceAll(regex, (_match, _g1, price) => {
     return `${numberFormatter.format(Math.floor(price * satsPerRinggit))} sats`;
   });
+}
+
+/**
+ * @param {Date} date
+ * @returns {string} Date formatted in YYYY-MM-DD
+ */
+function formatDateToYYYYMMDD(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are zero-based, so we add 1
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 main();

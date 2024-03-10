@@ -45,6 +45,7 @@ async function fetch(
   return new Response(JSON.stringify(resBody), {
     headers: {
       ["Content-Type"]: "application/json",
+      ["Access-Control-Allow-Origin"]: "https://shopee.com.my",
     },
   });
 }
