@@ -1,0 +1,8 @@
+name = "shopee-in-sats"
+main = "src/index.ts"
+compatibility_date = "2024-03-04"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "prod-shopee-in-sats"
+database_id = "e09df63a-387e-4781-9734-998f64255aa8"

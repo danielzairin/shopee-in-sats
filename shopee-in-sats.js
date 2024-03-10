@@ -70,4 +70,4 @@ function toSats(str, satsPerRinggit) {
   });
 }
 
-setTimeout(main, 1500);
+main();
