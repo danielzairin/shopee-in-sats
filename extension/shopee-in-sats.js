@@ -87,4 +87,13 @@ function formatDateToYYYYMMDD(date) {
   return `${year}-${month}-${day}`;
 }
 
-main();
+browser.runtime.onMessage.addListener((message) => {
+  console.log("got message: ", message);
+  switch (message) {
+    case "main":
+      // Wait for 200 ms before firing main to let the elements load
+      // TODO: Probably a better way to do this
+      setTimeout(() => main(), 200);
+      break;
+  }
+});

@@ -5,9 +5,14 @@
   "version": "1.0.0",
   "content_scripts": [
     {
-      "matches": ["*://*.shopee.com.my/user/purchase/order*"],
+      "matches": ["*://*.shopee.com.my/*"],
       "js": ["shopee-in-sats.js"]
     }
   ],
-  "permissions": ["find", "tabs"]
+  "background": {
+    "scripts": ["background-script.js"],
+    "persistent": false,
+    "type": "module"
+  },
+  "permissions": ["tabs"]
 }
