@@ -25,9 +25,9 @@ async function fetch(
   }
 
   const date = url.pathname.split("/")[1];
-  const price = (await env.DB.prepare(`SELECT * FROM prices WHERE date = ?;`)
+  const price = await env.DB.prepare(`SELECT * FROM prices WHERE date = ?;`)
     .bind(date)
-    .first()) as PriceRow | null;
+    .first<PriceRow>();
 
   if (!price) {
     return new Response("Internal Server Error", {

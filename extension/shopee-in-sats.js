@@ -78,8 +78,7 @@ async function getBTCPriceOnDate(date) {
     `http://localhost:8787/${formatDateToYYYYMMDD(date)}`
   );
   const { open: price } = await res.json();
-  // TODO: Convert USD to MYR
-  return price * 4.7;
+  return price;
 }
 
 /**
