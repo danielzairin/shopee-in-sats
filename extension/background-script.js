@@ -3,7 +3,11 @@ browser.runtime.onInstalled.addListener(() => {
 });
 
 browser.tabs.onUpdated.addListener(
-  (tabId, changes) => {
+  async (tabId, changes) => {
+    await browser.scripting.executeScript({
+      target: { tabId: tabId },
+      files: ["shopee-in-sats.js"],
+    });
     "url" in changes && console.log({ url: changes.url });
     if ("url" in changes && changes.url.match(/\/order\/\d+/)) {
       browser.tabs.sendMessage(tabId, "order-page");

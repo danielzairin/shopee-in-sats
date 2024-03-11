@@ -11,8 +11,7 @@
   ],
   "background": {
     "scripts": ["background-script.js"],
-    "persistent": false,
     "type": "module"
   },
-  "permissions": ["tabs"]
+  "permissions": ["tabs", "scripting"]
 }
