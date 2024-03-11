@@ -48,6 +48,25 @@ async function main() {
   }
 }
 
+async function productPage() {
+  const btcPrice = await getBTCPriceOnDate(new Date("2024-03-09"));
+  const satsPerRinggit = Math.floor((1 / btcPrice) * 100_000_000);
+
+  const selectors = [".G27FPf", ".qg2n76"];
+  const elementsToConvert = selectors.flatMap((selector) => {
+    const nodeList = document.querySelectorAll(selector);
+    return Array.from(nodeList);
+  });
+
+  // Convert each element's text content to satoshis
+  for (const elem of elementsToConvert) {
+    if (!elem.textContent) {
+      continue;
+    }
+    elem.textContent = toSats(elem.textContent, satsPerRinggit);
+  }
+}
+
 /**
  * Returns the price of 1 bitcoin in ringgit on a certain date.
  * @param {Date} date
@@ -70,9 +89,13 @@ async function getBTCPriceOnDate(date) {
  */
 function toSats(str, satsPerRinggit) {
   const numberFormatter = new Intl.NumberFormat("en-US");
-  const regex = /(-)?RM(\d+(\.\d{2})?)/g;
+  const regex = /(-)?RM(\d{1,3}(,\d{3})*(\.\d{2})?)/g;
   return str.replaceAll(regex, (_match, _g1, price) => {
-    return `${numberFormatter.format(Math.floor(price * satsPerRinggit))} sats`;
+    const priceWithoutComma = price.replace(/,/g, "");
+    const priceFloat = parseFloat(priceWithoutComma);
+    return `${numberFormatter.format(
+      Math.floor(priceFloat * satsPerRinggit)
+    )} sats`;
   });
 }
 
@@ -91,9 +114,12 @@ browser.runtime.onMessage.addListener((message) => {
   console.log("got message: ", message);
   switch (message) {
     case "main":
-      // Wait for 200 ms before firing main to let the elements load
+      // Wait for 500 ms before firing main to let the elements load
       // TODO: Probably a better way to do this
-      setTimeout(() => main(), 200);
+      setTimeout(() => main(), 500);
+      break;
+    case "product-page":
+      setTimeout(() => productPage(), 500);
       break;
   }
 });

@@ -9,6 +9,10 @@ browser.tabs.onUpdated.addListener(
       console.log("sending message main");
       browser.tabs.sendMessage(tabId, "main");
     }
+    if ("url" in changes && changes.url.match(/i.\d+.\d+/)) {
+      console.log("sending message product-page");
+      browser.tabs.sendMessage(tabId, "product-page");
+    }
   },
   {
     urls: ["*://*.shopee.com.my/*"],
