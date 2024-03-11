@@ -1,4 +1,6 @@
-async function main() {
+async function orderPage() {
+  await waitForNode('[aria-label^="order paid"');
+
   /**@type {Date | null} */
   let date = null;
 
@@ -49,6 +51,8 @@ async function main() {
 }
 
 async function productPage() {
+  await waitForNode(".G27FPf");
+
   const btcPrice = await getBTCPriceOnDate(new Date("2024-03-09"));
   const satsPerRinggit = Math.floor((1 / btcPrice) * 100_000_000);
 
@@ -110,16 +114,51 @@ function formatDateToYYYYMMDD(date) {
   return `${year}-${month}-${day}`;
 }
 
+/**
+ *
+ * @param {string} selector
+ * @param {number} timeoutMs
+ * @returns {Promise<void>}
+ */
+function waitForNode(selector, timeoutMs = 1000) {
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject(`timed out waiting for node ${selector}`);
+    }, timeoutMs);
+
+    if (document.querySelector(selector) !== null) {
+      resolve(undefined);
+    }
+
+    const observer = new MutationObserver((mutationList, observer) => {
+      for (const mutation of mutationList) {
+        if (
+          mutation.type === "childList" &&
+          mutation.addedNodes.length > 0 &&
+          document.querySelector(selector) !== null
+        ) {
+          clearTimeout(timeout);
+          observer.disconnect();
+          resolve(undefined);
+        }
+      }
+    });
+
+    observer.observe(document.querySelector("body"), {
+      childList: true,
+      subtree: true,
+    });
+  });
+}
+
 browser.runtime.onMessage.addListener((message) => {
   console.log("got message: ", message);
   switch (message) {
-    case "main":
-      // Wait for 500 ms before firing main to let the elements load
-      // TODO: Probably a better way to do this
-      setTimeout(() => main(), 500);
+    case "order-page":
+      orderPage();
       break;
     case "product-page":
-      setTimeout(() => productPage(), 500);
+      productPage();
       break;
   }
 });
