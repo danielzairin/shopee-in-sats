@@ -37,50 +37,28 @@
     const btcPrice = await getBTCPriceOnDate(date);
     const satsPerRinggit = Math.floor((1 / btcPrice) * 100_000_000);
 
-    // Select all 'line item' elements
-    const lineItemSelectors = [".Tfejtu", ".q6Gzj5", ".nW_6Oi"];
-    const lineItems = lineItemSelectors.flatMap((selector) => {
-      const nodeList = document.querySelectorAll(selector);
-      return Array.from(nodeList);
+    document.querySelectorAll(".Tfejtu, .q6Gzj5, .nW_6Oi").forEach((node) => {
+      node.textContent = toSats(node.textContent, satsPerRinggit);
     });
-
-    /**@type {Element[]} */
-    const elementsToConvert = new Array()
-      .concat(lineItems)
-      .concat(Array.from(orderPaidStepper.childNodes));
-
-    // Convert each element's text content to satoshis
-    for (const elem of elementsToConvert) {
-      if (!elem.textContent) {
-        continue;
-      }
-      elem.textContent = toSats(elem.textContent, satsPerRinggit);
-    }
   }
 
   async function productPage() {
-    await waitForNode(".G27FPf");
     try {
+      await waitForNode(".G27FPf");
       await waitForNode(".qg2n76", 300);
     } finally {
       const btcPrice = await getBTCPriceOnDate(new Date("2024-03-09"));
       const satsPerRinggit = Math.floor((1 / btcPrice) * 100_000_000);
 
-      const selectors = [".G27FPf", ".qg2n76"];
-      const elementsToConvert = selectors.flatMap((selector) => {
-        const nodeList = document.querySelectorAll(selector);
-        return Array.from(nodeList);
-      });
-
-      // Convert each element's text content to satoshis
-      for (const elem of elementsToConvert) {
-        if (!elem.textContent) {
-          continue;
-        }
-        elem.textContent = toSats(elem.textContent, satsPerRinggit);
+      function convertPrices() {
+        document.querySelectorAll(".G27FPf, .qg2n76").forEach((node) => {
+          node.textContent = toSats(node.textContent, satsPerRinggit);
+        });
       }
 
-      const variantContainer = document.querySelector(".W5LiQM");
+      convertPrices();
+
+      const productVariantPicker = document.querySelector(".W5LiQM");
       const observeOptions = {
         characterData: true,
         childList: true,
@@ -88,30 +66,17 @@
         attribute: true,
       };
 
-      // Update price tag when variant of product changes by observing the variant selectors
-      const observer = new MutationObserver((_mutationList, observer) => {
+      // Update price tag when variant of product changes by observing the variant picker
+      const observer = new MutationObserver(async (_mutationList, observer) => {
         observer.disconnect();
-        setTimeout(() => {
-          const selectors = [".G27FPf", ".qg2n76"];
-          const elementsToConvert = selectors.flatMap((selector) => {
-            const nodeList = document.querySelectorAll(selector);
-            return Array.from(nodeList);
-          });
-
-          for (const elem of elementsToConvert) {
-            if (!elem.textContent) {
-              continue;
-            }
-            elem.textContent = toSats(elem.textContent, satsPerRinggit);
-          }
-        }, 100);
-        setTimeout(() => {
-          observer.takeRecords();
-          observer.observe(variantContainer, observeOptions);
-        }, 100);
+        await sleep(100);
+        convertPrices();
+        await sleep(100);
+        observer.takeRecords();
+        observer.observe(productVariantPicker, observeOptions);
       });
 
-      observer.observe(variantContainer, observeOptions);
+      observer.observe(productVariantPicker, observeOptions);
     }
   }
 
@@ -129,24 +94,22 @@
       attributes: true,
     };
 
-    const observer = new MutationObserver((_mutationList, observer) => {
+    const observer = new MutationObserver(async (_mutationList, observer) => {
       observer.disconnect();
-      setTimeout(() => {
-        document.querySelectorAll(".qmTjt-").forEach((node) => node.remove());
-        document.querySelectorAll(".Q1tsgQ").forEach((node) => {
-          if (node.textContent.includes("sats")) {
-            return;
-          }
-          node.textContent = toSats(`RM${node.textContent}`, satsPerRinggit);
-        });
-        document.querySelectorAll(".FEGPgv").forEach((node) => {
-          node.textContent = toSats(node.textContent, satsPerRinggit);
-        });
-      }, 200);
-      setTimeout(() => {
-        observer.takeRecords();
-        observer.observe(searchResults, observeOptions);
-      }, 500);
+      await sleep(100);
+      document.querySelectorAll(".qmTjt-").forEach((node) => node.remove());
+      document.querySelectorAll(".Q1tsgQ").forEach((node) => {
+        if (node.textContent.includes("sats")) {
+          return;
+        }
+        node.textContent = toSats(`RM${node.textContent}`, satsPerRinggit);
+      });
+      document.querySelectorAll(".FEGPgv").forEach((node) => {
+        node.textContent = toSats(node.textContent, satsPerRinggit);
+      });
+      await sleep(100);
+      observer.takeRecords();
+      observer.observe(searchResults, observeOptions);
     });
 
     observer.observe(searchResults, observeOptions);
@@ -164,24 +127,6 @@
     );
     const { open: price } = await res.json();
     return price;
-  }
-
-  /**
-   * Converts all ringgit price tags to satoshis.
-   * @param {string} str
-   * @param {number} satsPerRinggit
-   * @returns {string}
-   */
-  function toSats(str, satsPerRinggit) {
-    const numberFormatter = new Intl.NumberFormat("en-US");
-    const regex = /(-)?RM(\d{1,3}(,\d{3})*(\.\d{2})?)/g;
-    return str.replaceAll(regex, (_match, _g1, price) => {
-      const priceWithoutComma = price.replace(/,/g, "");
-      const priceFloat = parseFloat(priceWithoutComma);
-      return `${numberFormatter.format(
-        Math.floor(priceFloat * satsPerRinggit)
-      )} sats`;
-    });
   }
 
   /**
@@ -232,8 +177,33 @@
     });
   }
 
+  /**
+   * Converts all ringgit price tags in a string to satoshis.
+   * @param {string} str
+   * @param {number} satsPerRinggit
+   * @returns {string}
+   */
+  function toSats(str, satsPerRinggit) {
+    const numberFormatter = new Intl.NumberFormat("en-US");
+    const regex = /(-)?RM(\d{1,3}(,\d{3})*(\.\d{2})?)/g;
+    return str.replaceAll(regex, (_match, _g1, price) => {
+      const priceWithoutComma = price.replace(/,/g, "");
+      const priceFloat = parseFloat(priceWithoutComma);
+      return `${numberFormatter.format(
+        Math.floor(priceFloat * satsPerRinggit)
+      )} sats`;
+    });
+  }
+
+  /**
+   * @param {number} ms
+   * @returns {Promise<void>}
+   */
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
   browser.runtime.onMessage.addListener((message) => {
-    console.log("got message: ", message);
     switch (message) {
       case "order-page":
         orderPage();
