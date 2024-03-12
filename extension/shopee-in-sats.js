@@ -115,6 +115,43 @@
     }
   }
 
+  async function searchResultsPage() {
+    await waitForNode(".shopee-search-item-result");
+
+    const btcPrice = await getBTCPriceOnDate(new Date("2024-03-09"));
+    const satsPerRinggit = Math.floor((1 / btcPrice) * 100_000_000);
+
+    const searchResults = document.querySelector(".shopee-search-item-result");
+
+    const observeOptions = {
+      childList: true,
+      subtree: true,
+      attributes: true,
+    };
+
+    const observer = new MutationObserver((_mutationList, observer) => {
+      observer.disconnect();
+      setTimeout(() => {
+        document.querySelectorAll(".qmTjt-").forEach((node) => node.remove());
+        document.querySelectorAll(".Q1tsgQ").forEach((node) => {
+          if (node.textContent.includes("sats")) {
+            return;
+          }
+          node.textContent = toSats(`RM${node.textContent}`, satsPerRinggit);
+        });
+        document.querySelectorAll(".FEGPgv").forEach((node) => {
+          node.textContent = toSats(node.textContent, satsPerRinggit);
+        });
+      }, 200);
+      setTimeout(() => {
+        observer.takeRecords();
+        observer.observe(searchResults, observeOptions);
+      }, 500);
+    });
+
+    observer.observe(searchResults, observeOptions);
+  }
+
   /**
    * Returns the price of 1 bitcoin in ringgit on a certain date.
    * @param {Date} date
@@ -203,6 +240,9 @@
         break;
       case "product-page":
         productPage();
+        break;
+      case "search-results-page":
+        searchResultsPage();
         break;
     }
   });

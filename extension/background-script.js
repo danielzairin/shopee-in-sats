@@ -15,6 +15,9 @@ browser.tabs.onUpdated.addListener(
     if ("url" in changes && changes.url.match(/i.\d+.\d+/)) {
       browser.tabs.sendMessage(tabId, "product-page");
     }
+    if ("url" in changes && changes.url.match("/search")) {
+      browser.tabs.sendMessage(tabId, "search-results-page");
+    }
   },
   {
     urls: ["*://*.shopee.com.my/*"],
