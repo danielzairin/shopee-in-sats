@@ -60,22 +60,58 @@
 
   async function productPage() {
     await waitForNode(".G27FPf");
+    try {
+      await waitForNode(".qg2n76", 300);
+    } finally {
+      const btcPrice = await getBTCPriceOnDate(new Date("2024-03-09"));
+      const satsPerRinggit = Math.floor((1 / btcPrice) * 100_000_000);
 
-    const btcPrice = await getBTCPriceOnDate(new Date("2024-03-09"));
-    const satsPerRinggit = Math.floor((1 / btcPrice) * 100_000_000);
+      const selectors = [".G27FPf", ".qg2n76"];
+      const elementsToConvert = selectors.flatMap((selector) => {
+        const nodeList = document.querySelectorAll(selector);
+        return Array.from(nodeList);
+      });
 
-    const selectors = [".G27FPf", ".qg2n76"];
-    const elementsToConvert = selectors.flatMap((selector) => {
-      const nodeList = document.querySelectorAll(selector);
-      return Array.from(nodeList);
-    });
-
-    // Convert each element's text content to satoshis
-    for (const elem of elementsToConvert) {
-      if (!elem.textContent) {
-        continue;
+      // Convert each element's text content to satoshis
+      for (const elem of elementsToConvert) {
+        if (!elem.textContent) {
+          continue;
+        }
+        elem.textContent = toSats(elem.textContent, satsPerRinggit);
       }
-      elem.textContent = toSats(elem.textContent, satsPerRinggit);
+
+      const variantContainer = document.querySelector(".W5LiQM");
+      const observeOptions = {
+        characterData: true,
+        childList: true,
+        subtree: true,
+        attribute: true,
+      };
+
+      // Update price tag when variant of product changes by observing the variant selectors
+      const observer = new MutationObserver((_mutationList, observer) => {
+        observer.disconnect();
+        setTimeout(() => {
+          const selectors = [".G27FPf", ".qg2n76"];
+          const elementsToConvert = selectors.flatMap((selector) => {
+            const nodeList = document.querySelectorAll(selector);
+            return Array.from(nodeList);
+          });
+
+          for (const elem of elementsToConvert) {
+            if (!elem.textContent) {
+              continue;
+            }
+            elem.textContent = toSats(elem.textContent, satsPerRinggit);
+          }
+        }, 100);
+        setTimeout(() => {
+          observer.takeRecords();
+          observer.observe(variantContainer, observeOptions);
+        }, 100);
+      });
+
+      observer.observe(variantContainer, observeOptions);
     }
   }
 
