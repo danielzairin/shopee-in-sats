@@ -69,10 +69,9 @@
       // Update price tag when variant of product changes by observing the variant picker
       const observer = new MutationObserver(async (_mutationList, observer) => {
         observer.disconnect();
-        await sleep(100);
+        await sleep(300);
         convertPrices();
-        await sleep(100);
-        observer.takeRecords();
+        await sleep(300);
         observer.observe(productVariantPicker, observeOptions);
       });
 
@@ -96,7 +95,7 @@
 
     const observer = new MutationObserver(async (_mutationList, observer) => {
       observer.disconnect();
-      await sleep(100);
+      await sleep(300);
       document.querySelectorAll(".qmTjt-").forEach((node) => node.remove());
       document.querySelectorAll(".Q1tsgQ").forEach((node) => {
         if (node.textContent.includes("sats")) {
@@ -107,8 +106,7 @@
       document.querySelectorAll(".FEGPgv").forEach((node) => {
         node.textContent = toSats(node.textContent, satsPerRinggit);
       });
-      await sleep(100);
-      observer.takeRecords();
+      await sleep(300);
       observer.observe(searchResults, observeOptions);
     });
 
