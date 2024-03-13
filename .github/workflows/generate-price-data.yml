@@ -1,6 +1,8 @@
 name: Generate Price Data
 on:
-  push
+  push:
+    branches:
+      - main
   schedule:
     - cron: "13 0 * * *"
 env:
