@@ -1,18 +1,19 @@
 browser.runtime.onInstalled.addListener(async () => {
-  const response = await fetch(
-    "https://cloudflare-pages-21p.pages.dev/BTC-MYR.json"
-  );
-
-  if (!response.ok) {
-    console.error("failed to fetch BTC-MYR.json");
-    return;
-  }
-
   const { staleAt } = await browser.storage.local.get("staleAt");
   const now = new Date();
 
   if (!staleAt || now > new Date(staleAt)) {
     console.log("Data is stale, fetching latest data...");
+
+    const response = await fetch(
+      "https://cloudflare-pages-21p.pages.dev/BTC-MYR.json"
+    );
+
+    if (!response.ok) {
+      console.error("failed to fetch BTC-MYR.json");
+      return;
+    }
+
     /**@type {Record<string, number>} */
     const dateToPrice = await response.json();
     await browser.storage.local.set(dateToPrice);
