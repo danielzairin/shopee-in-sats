@@ -1,0 +1,14 @@
+name: Generate Price Data
+on: [push]
+jobs:
+  Generate-Price-Data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+      - run: cd cloudflare/
+      - run: npm install
+      - run: npx tsx scripts/generateData.ts > data/BTC-MYR.csv
+      - run: npx wrangler pages deploy data/ --project-name="cloudflare-pages"
