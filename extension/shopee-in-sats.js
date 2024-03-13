@@ -47,7 +47,7 @@
       await waitForNode(".G27FPf");
       await waitForNode(".qg2n76", 300);
     } finally {
-      const btcPrice = await getBTCPriceOnDate(new Date("2024-03-09"));
+      const btcPrice = await getBTCPriceOnDate(new Date());
       const satsPerRinggit = Math.floor((1 / btcPrice) * 100_000_000);
 
       function convertPrices() {
@@ -83,7 +83,7 @@
   async function searchResultsPage() {
     await waitForNode(".shopee-search-item-result");
 
-    const btcPrice = await getBTCPriceOnDate(new Date("2024-03-09"));
+    const btcPrice = await getBTCPriceOnDate(new Date());
     const satsPerRinggit = Math.floor((1 / btcPrice) * 100_000_000);
 
     const searchResults = document.querySelector(".shopee-search-item-result");
@@ -121,13 +121,29 @@
    * @returns {Promise<number>}
    */
   async function getBTCPriceOnDate(date) {
-    const key = formatDateToYYYYMMDD(date);
+    /**@type {number | null} */
+    let price = null;
+    const maxIterations = 10;
+    let i = 0;
 
-    const data = await browser.storage.local.get({
-      [key]: 0,
-    });
+    do {
+      const key = formatDateToYYYYMMDD(date);
+      const data = await browser.storage.local.get({
+        [key]: null,
+      });
+      if (data[key] === null) {
+        // If no price on the date, use the previous date
+        date = new Date(date.setDate(date.getDate() - 1));
+      }
+      price = data[key];
+      i++;
+    } while (price === null && i <= maxIterations);
 
-    return data[key];
+    if (price === null) {
+      return NaN;
+    }
+
+    return price;
   }
 
   /**
