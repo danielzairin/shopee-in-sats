@@ -1,16 +1,9 @@
-import path from "node:path";
-import fs from "node:fs";
 import parseCSV from "neat-csv";
 import * as datefns from "date-fns";
 
-const PATH = {
-  BTC_USD: path.resolve(__dirname, "..", "data", "BTC-USD.csv"),
-  USD_MYR: path.resolve(__dirname, "..", "data", "USD-MYR.csv"),
-};
-
 async function main() {
   const usdMyrRows = await parseCSV<{ Date: string; Open: number }>(
-    fs.readFileSync(PATH.USD_MYR),
+    await fetchUSDMYRData(),
     {
       headers: ["Date", "Open"],
       mapValues: ({ header, value }) => {
@@ -26,7 +19,7 @@ async function main() {
   }
 
   const btcUsdRows = await parseCSV<{ Date: string; Open: number }>(
-    fs.readFileSync(PATH.BTC_USD),
+    await fetchBTCUSDData(),
     {
       mapValues: ({ header, value }) => {
         if (header === "Open") return parseInt(value);
@@ -42,21 +35,72 @@ async function main() {
 
     if (!usdMyrRate) {
       // If no exchange rate on the date, use the closest one from the past
-      let date = datefns.parse(row["Date"], "yyyy-mm-dd", Date.now());
+      let date = datefns.parse(row["Date"], "yyyy-MM-dd", Date.now());
+      let count = 0;
       while (!usdMyrRate) {
-        const key = datefns.format(date, "yyyy-mm-dd");
+        const key = datefns.format(date, "yyyy-MM-dd");
         usdMyrRate = exchangeRate.get(key);
         date = datefns.addDays(date, -1);
+        count++;
+        if (count >= 10) {
+          throw Error(
+            `failed to find an exchange rate for date: ${row["Date"]} after 10 attempts`
+          );
+        }
       }
     }
 
     const date = row["Date"];
-    const open = Math.round(row["Open"] * usdMyrRate);
+    let open = Math.round(row["Open"] * usdMyrRate);
+
+    if (!row["Open"]) {
+      // If for some reason there is no BTC USD price on this date, use the latest one
+      const current = datefns.parse(row["Date"], "yyyy-MM-dd", Date.now());
+      const yesterday = datefns.addDays(current, -1);
+      const key = datefns.format(yesterday, "yyyy-MM-dd");
+      open = dateToPrice[key];
+    }
 
     dateToPrice[date] = open;
   }
 
-  console.log(JSON.stringify(dateToPrice));
+  console.log(JSON.stringify(dateToPrice, null, 2));
+}
+
+/**
+ * Fetches the historical price of a bitcoin in USD from Yahoo Finances.
+ * Data starts from 2014-09-17 to the most recent date.
+ * @returns {Promise<string>} csv file
+ */
+async function fetchBTCUSDData(): Promise<string> {
+  const url = `https://query1.finance.yahoo.com/v7/finance/download/BTC-USD?period1=1410912000&period2=${Math.floor(
+    Date.now() / 1000
+  )}&interval=1d&events=history`;
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw Error(`failed to fetch BTC-USD CSV file, status: ${response.status}`);
+  }
+
+  return response.text();
+}
+
+/**
+ * Fetches the historical exchange rate of MYR to USD from Yahoo Finances.
+ * Data starts from 2014-09-17 to the most recent date.
+ * @returns {Promise<string>} csv file
+ */
+async function fetchUSDMYRData(): Promise<string> {
+  const url = `https://query1.finance.yahoo.com/v7/finance/download/MYR=X?period1=1410912000&period2=${Math.floor(
+    Date.now() / 1000
+  )}&interval=1d&events=history`;
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw Error(`failed to fetch USD-MYR CSV file, status: ${response.status}`);
+  }
+
+  return response.text();
 }
 
 main();

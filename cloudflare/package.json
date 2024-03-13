@@ -2,22 +2,13 @@
   "name": "shopee-in-sats",
   "version": "0.0.0",
   "private": true,
-  "scripts": {
-    "deploy": "wrangler deploy",
-    "dev": "wrangler dev",
-    "start": "wrangler dev"
-  },
+  "scripts": {},
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240222.0",
     "@types/node": "^20.11.25",
-    "better-sqlite3": "^9.4.3",
     "date-fns": "^3.3.1",
     "neat-csv": "^7.0.0",
     "tsx": "^4.7.1",
     "typescript": "^5.0.4",
     "wrangler": "^3.0.0"
-  },
-  "dependencies": {
-    "drizzle-orm": "^0.30.1"
   }
 }
