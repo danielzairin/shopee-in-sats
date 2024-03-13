@@ -3,7 +3,7 @@ on: [push]
 jobs:
   Generate-Price-Data:
     runs-on: ubuntu-latest
-    deafults:
+    defaults:
       run:
         working-directory: ./cloudflare
     steps:
