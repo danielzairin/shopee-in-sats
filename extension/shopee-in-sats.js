@@ -121,22 +121,23 @@
    * @returns {Promise<number>}
    */
   async function getBTCPriceOnDate(date) {
-    const res = await fetch(
-      // TODO: Configure the base URL
-      `http://localhost:8787/${formatDateToYYYYMMDD(date)}`
-    );
-    const { open: price } = await res.json();
-    return price;
+    const key = formatDateToYYYYMMDD(date);
+
+    const data = await browser.storage.local.get({
+      [key]: 0,
+    });
+
+    return data[key];
   }
 
   /**
    * @param {Date} date
-   * @returns {string} Date formatted in YYYY-MM-DD
+   * @returns {string} Date formatted in YYYY-MM-DD (UTC timezone)
    */
   function formatDateToYYYYMMDD(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are zero-based, so we add 1
-    const day = String(date.getDate()).padStart(2, "0");
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, "0"); // Months are zero-based, so we add 1
+    const day = String(date.getUTCDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   }
 

@@ -13,6 +13,6 @@
     "scripts": ["background-script.js"],
     "type": "module"
   },
-  "permissions": ["tabs", "scripting"],
+  "permissions": ["tabs", "scripting", "storage"],
   "host_permissions": ["*://*.shopee.com.my/*"]
 }
