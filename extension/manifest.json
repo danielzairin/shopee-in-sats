@@ -2,6 +2,10 @@
   "$schema": "https://json.schemastore.org/chrome-manifest",
   "manifest_version": 3,
   "name": "Shopee in sats",
+  "icons": {
+    "48": "icons/shopee-in-sats-48x48.png",
+    "96": "icons/shopee-in-sats-96x96.png"
+  },
   "version": "1.0.0",
   "content_scripts": [
     {
