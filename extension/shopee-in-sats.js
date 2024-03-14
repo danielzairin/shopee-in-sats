@@ -27,7 +27,8 @@
 
   async function productPage() {
     try {
-      await Promise.all(waitForNode(".G27FPf"), waitForNode(".qg2n76"));
+      await waitForNode(".G27FPf");
+      await waitForNode(".qg2n76", 300);
     } finally {
       const btcPrice = await getBTCPriceOnDate(new Date());
       const satsPerRinggit = Math.floor((1 / btcPrice) * 100_000_000);
@@ -78,14 +79,16 @@
     const observer = new MutationObserver(async (_mutationList, observer) => {
       observer.disconnect();
       await sleep(300);
-      document.querySelectorAll(".qmTjt-").forEach((node) => node.remove());
-      document.querySelectorAll(".Q1tsgQ").forEach((node) => {
+      document
+        .querySelectorAll(`.qmTjt-, .${CSS.escape("bx++ig")}`)
+        .forEach((node) => node.remove());
+      document.querySelectorAll(".Q1tsgQ, .k9JZlv").forEach((node) => {
         if (node.textContent.includes("sats")) {
           return;
         }
         node.textContent = toSats(`RM${node.textContent}`, satsPerRinggit);
       });
-      document.querySelectorAll(".FEGPgv").forEach((node) => {
+      document.querySelectorAll(".FEGPgv, .H5ICvW").forEach((node) => {
         node.textContent = toSats(node.textContent, satsPerRinggit);
       });
       await sleep(300);
@@ -209,6 +212,7 @@
         productPage();
         break;
       case "search-results-page":
+      case "category-results-page":
         searchResultsPage();
         break;
     }

@@ -48,6 +48,10 @@ browser.tabs.onUpdated.addListener(
         pattern: /\/search/,
         message: "search-results-page",
       },
+      {
+        pattern: /cat.\d+.\d+/,
+        message: "category-results-page",
+      },
     ];
 
     if ("url" in changes) {
