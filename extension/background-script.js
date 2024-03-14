@@ -52,6 +52,10 @@ browser.tabs.onUpdated.addListener(
         pattern: /cat.\d+.\d+/,
         message: "category-results-page",
       },
+      {
+        pattern: /\/user\/purchase/,
+        message: "user-purchase-page",
+      },
     ];
 
     if ("url" in changes) {

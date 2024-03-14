@@ -4,6 +4,76 @@
   }
   window.hasRun = true;
 
+  async function userPurchasePage() {
+    await waitForNode("main[aria-role=tabpanel]");
+
+    const processedOrderIds = [];
+
+    async function convertPricesToSats() {
+      const orderCards = document.querySelectorAll(".YL_VlX");
+      for (const orderCard of orderCards) {
+        const link = orderCard
+          .querySelector('a[aria-label="Go to PDP"]')
+          ?.getAttribute("href");
+        const matches = link.match(/\/order\/(\d+)/);
+        const orderId = matches?.[1];
+
+        if (!orderId || processedOrderIds.includes(orderId)) {
+          continue;
+        }
+        processedOrderIds.push(orderId);
+
+        const response = await fetch(
+          `https://shopee.com.my/api/v4/order/get_order_detail?order_id=${orderId}`,
+          {
+            credentials: "include",
+            headers: {
+              Accept: "application/json",
+              "Accept-Language": "en-US,en;q=0.5",
+              "Content-Type": "application/json",
+              "X-Shopee-Language": "en",
+              "X-API-SOURCE": "pc",
+            },
+            method: "GET",
+            mode: "cors",
+          }
+        );
+
+        const json = await response.json();
+        const payTime = json.data?.pc_processing_info?.pay_time;
+        if (!payTime) {
+          throw Error(
+            "missing data.pc_processing_info.pay_time from API response"
+          );
+        }
+
+        const btcPrice = await getBTCPriceOnDate(new Date(payTime * 1000));
+        const satsPerRinggit = Math.floor((1 / btcPrice) * 100_000_000);
+
+        orderCard
+          .querySelectorAll(".q6Gzj5, .nW_6Oi, .t7TQaf")
+          .forEach((node) => {
+            node.textContent = toSats(node.textContent, satsPerRinggit);
+          });
+      }
+    }
+
+    await convertPricesToSats();
+
+    const tabPanel = document.querySelector("main[aria-role=tabpanel]");
+    const observeOptions = { childList: true, subtree: true };
+
+    const observer = new MutationObserver(async (_mutationList, observer) => {
+      observer.disconnect();
+      await sleep(300);
+      await convertPricesToSats();
+      await sleep(300);
+      observer.observe(tabPanel, observeOptions);
+    });
+
+    observer.observe(tabPanel, observeOptions);
+  }
+
   async function orderPage() {
     await waitForNode('[aria-label^="order paid"]');
 
@@ -205,6 +275,9 @@
 
   browser.runtime.onMessage.addListener((message) => {
     switch (message) {
+      case "user-purchase-page":
+        userPurchasePage();
+        break;
       case "order-page":
         orderPage();
         break;
