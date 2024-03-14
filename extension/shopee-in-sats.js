@@ -5,58 +5,40 @@
   window.hasRun = true;
 
   async function orderPage() {
-    await waitForNode('[aria-label^="order paid"');
-
-    /**@type {Date | null} */
-    let date = null;
+    await waitForNode('[aria-label^="order paid"]');
 
     // Search the 'order paid' stepper element for a date
-    const orderPaidStepper = document.querySelector(
-      '[aria-label^="order paid"'
-    );
-    for (const elem of orderPaidStepper.childNodes) {
-      if (!elem.textContent) {
-        continue;
-      }
-
-      // Regex that matches DD-MM-YYYY
-      const dateRegex = /(\d{2})-(\d{2})-(\d{4})/;
-      const match = elem.textContent.match(dateRegex);
-      if (match !== null) {
-        const [day, month, year] = match[0].split("-").map(Number);
-        date = new Date(year, month - 1, day);
-        break;
-      }
-    }
-
-    if (date === null) {
-      console.error("failed to find a date");
-      return;
-    }
+    const dateRegex = /(\d{2})-(\d{2})-(\d{4})/;
+    const [_, day, month, year] = document
+      .querySelector('[aria-label^="order paid"]')
+      .getAttribute("aria-label")
+      .match(dateRegex);
+    const date = new Date(year, month - 1, day);
 
     const btcPrice = await getBTCPriceOnDate(date);
     const satsPerRinggit = Math.floor((1 / btcPrice) * 100_000_000);
 
-    document.querySelectorAll(".Tfejtu, .q6Gzj5, .nW_6Oi").forEach((node) => {
-      node.textContent = toSats(node.textContent, satsPerRinggit);
-    });
+    document
+      .querySelectorAll(".Tfejtu, .q6Gzj5, .nW_6Oi, .stepper__step-text")
+      .forEach((node) => {
+        node.textContent = toSats(node.textContent, satsPerRinggit);
+      });
   }
 
   async function productPage() {
     try {
-      await waitForNode(".G27FPf");
-      await waitForNode(".qg2n76", 300);
+      await Promise.all(waitForNode(".G27FPf"), waitForNode(".qg2n76"));
     } finally {
       const btcPrice = await getBTCPriceOnDate(new Date());
       const satsPerRinggit = Math.floor((1 / btcPrice) * 100_000_000);
 
-      function convertPrices() {
+      function convertPricesToSats() {
         document.querySelectorAll(".G27FPf, .qg2n76").forEach((node) => {
           node.textContent = toSats(node.textContent, satsPerRinggit);
         });
       }
 
-      convertPrices();
+      convertPricesToSats();
 
       const productVariantPicker = document.querySelector(".W5LiQM");
       const observeOptions = {
@@ -70,7 +52,7 @@
       const observer = new MutationObserver(async (_mutationList, observer) => {
         observer.disconnect();
         await sleep(300);
-        convertPrices();
+        convertPricesToSats();
         await sleep(300);
         observer.observe(productVariantPicker, observeOptions);
       });
