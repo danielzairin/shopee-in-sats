@@ -107,6 +107,9 @@
         document.querySelectorAll(".G27FPf, .qg2n76").forEach((node) => {
           node.textContent = toSats(node.textContent, satsPerRinggit);
         });
+        document.querySelectorAll(".item-card-special__current-price").forEach((node) => {
+          node.textContent = toSats(node.textContent, satsPerRinggit);
+        });
       }
 
       convertPricesToSats();
