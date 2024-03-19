@@ -26,11 +26,15 @@ npm install
 
 ### Run the extension
 
+In Firefox: Open the [about:debugging](about:debugging) page, click the This Firefox option, click the Load Temporary Add-on button, then select any file in your extension's directory.
+
+The extension now installs, and remains installed until you restart Firefox.
+
+Alternatively, you can run the extension from the command line using the web-ext tool:
+
 ```
 npx web-ext run -s extension/
 ```
-
-This will open a firefox browser window with the extension installed.
 
 ### Test out the extension
 
