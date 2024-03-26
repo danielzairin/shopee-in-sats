@@ -1,5 +1,23 @@
 {
+  "name": "shopee-in-sats",
+  "displayName": "Shopee in sats",
+  "version": "0.0.1",
   "devDependencies": {
+    "@types/chrome": "^0.0.263",
+    "typescript": "^5.4.3",
     "web-ext": "^7.11.0"
+  },
+  "dependencies": {
+    "plasmo": "^0.85.2"
+  },
+  "manifest": {
+    "permissions": [
+      "tabs",
+      "scripting",
+      "storage"
+    ],
+    "host_permissions": [
+      "*://*.shopee.com.my/*"
+    ]
   }
 }
