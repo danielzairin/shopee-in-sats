@@ -9,14 +9,27 @@
   "version": "1.0.0",
   "content_scripts": [
     {
-      "matches": ["*://*.shopee.com.my/*"],
-      "js": ["shopee-in-sats.js"]
+      "matches": [
+        "*://*.shopee.com.my/*"
+      ],
+      "js": [
+        "shopee-in-sats.js"
+      ]
     }
   ],
   "background": {
-    "scripts": ["background-script.js"],
+    "service_worker": "background-script.js",
+    "scripts": [
+      "background-script.js"
+    ],
     "type": "module"
   },
-  "permissions": ["tabs", "scripting", "storage"],
-  "host_permissions": ["*://*.shopee.com.my/*"]
+  "permissions": [
+    "tabs",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "*://*.shopee.com.my/*"
+  ]
 }

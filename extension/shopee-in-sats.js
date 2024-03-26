@@ -184,7 +184,7 @@
 
     do {
       const key = formatDateToYYYYMMDD(date);
-      const data = await browser.storage.local.get({
+      const data = await chrome.storage.local.get({
         [key]: null,
       });
       if (data[key] === null) {
@@ -276,7 +276,7 @@
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
-  browser.runtime.onMessage.addListener((message) => {
+  chrome.runtime.onMessage.addListener((message) => {
     switch (message) {
       case "user-purchase-page":
         userPurchasePage();

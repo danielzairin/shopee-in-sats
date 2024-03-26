@@ -1,5 +1,5 @@
-browser.runtime.onInstalled.addListener(async () => {
-  const { staleAt } = await browser.storage.local.get("staleAt");
+chrome.runtime.onInstalled.addListener(async () => {
+  const { staleAt } = await chrome.storage.local.get("staleAt");
   const now = new Date();
 
   if (!staleAt || now > new Date(staleAt)) {
@@ -16,21 +16,21 @@ browser.runtime.onInstalled.addListener(async () => {
 
     /**@type {Record<string, number>} */
     const dateToPrice = await response.json();
-    await browser.storage.local.set(dateToPrice);
+    await chrome.storage.local.set(dateToPrice);
     const newStaleAt = Date.UTC(
       now.getUTCFullYear(),
       now.getUTCMonth(),
       now.getUTCDate() + 1
     );
-    await browser.storage.local.set({ staleAt: newStaleAt });
+    await chrome.storage.local.set({ staleAt: newStaleAt });
   }
 
   console.log("Initialized successfully");
 });
 
-browser.tabs.onUpdated.addListener(
+chrome.tabs.onUpdated.addListener(
   async (tabId, changes) => {
-    await browser.scripting.executeScript({
+    await chrome.scripting.executeScript({
       target: { tabId: tabId },
       files: ["shopee-in-sats.js"],
     });
@@ -63,13 +63,10 @@ browser.tabs.onUpdated.addListener(
       for (const { pattern, message } of urlChanges) {
         console.log(pattern, message);
         if (changes.url.match(pattern)) {
-          browser.tabs.sendMessage(tabId, message);
+          chrome.tabs.sendMessage(tabId, message);
           break;
         }
       }
     }
-  },
-  {
-    urls: ["*://*.shopee.com.my/*"],
   }
 );
