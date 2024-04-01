@@ -96,45 +96,34 @@
   }
 
   async function productPage() {
-    try {
-      await waitForNode(".G27FPf");
-      await waitForNode(".qg2n76", 300);
-    } finally {
-      const btcPrice = await getBTCPriceOnDate(new Date());
-      const satsPerRinggit = Math.floor((1 / btcPrice) * 100_000_000);
+    await waitForNode(".G27FPf");
+    const btcPrice = await getBTCPriceOnDate(new Date());
+    const satsPerRinggit = Math.floor((1 / btcPrice) * 100_000_000);
 
-      function convertPricesToSats() {
-        document.querySelectorAll(".G27FPf, .qg2n76").forEach((node) => {
-          node.textContent = toSats(node.textContent, satsPerRinggit);
-        });
-        document.querySelectorAll(".item-card-special__current-price").forEach((node) => {
-          node.textContent = toSats(node.textContent, satsPerRinggit);
-        });
+    const priceTag = () => document.querySelector(".G27FPf");
+    const slashedPriceTag = () => document.querySelector(".qg2n76");
+
+    const convertPriceTags = () => {
+      priceTag().textContent = toSats(priceTag().textContent, satsPerRinggit);
+      if (slashedPriceTag()) {
+        slashedPriceTag().textContent = toSats(slashedPriceTag().textContent, satsPerRinggit);
       }
-
-      convertPricesToSats();
-
-      const productVariantPicker = document.querySelector(".W5LiQM");
-      const observeOptions = {
-        characterData: true,
-        childList: true,
-        subtree: true,
-        attribute: true,
-      };
-
-      // Update price tag when variant of product changes by observing the variant picker
-      const observer = new MutationObserver(async (_mutationList, observer) => {
-        observer.disconnect();
-        await sleep(300);
-        convertPricesToSats();
-        await sleep(300);
-        observer.observe(productVariantPicker, observeOptions);
-      });
-
-      observer.observe(productVariantPicker, observeOptions);
     }
-  }
 
+    convertPriceTags();
+
+    new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'characterData' && mutation.target.textContent.includes("RM")) {
+          convertPriceTags();
+        }
+      })
+    }).observe(priceTag(), { subtree: true, characterData: true });
+
+    document.querySelectorAll(".item-card-special__current-price").forEach((node) => {
+      node.textContent = toSats(node.textContent, satsPerRinggit);
+    });
+  }
   async function searchResultsPage() {
     await waitForNode(".shopee-search-item-result");
 
