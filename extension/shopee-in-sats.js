@@ -1,7 +1,9 @@
 (() => {
+  // @ts-ignore
   if (window.hasRun === true) {
     return;
   }
+  // @ts-ignore
   window.hasRun = true;
 
   async function userPurchasePage() {
@@ -83,7 +85,7 @@
       .querySelector('[aria-label^="order paid"]')
       .getAttribute("aria-label")
       .match(dateRegex);
-    const date = new Date(year, month - 1, day);
+    const date = new Date(Number(year), Number(month) - 1, Number(day));
 
     const btcPrice = await getBTCPriceOnDate(date);
     const satsPerRinggit = Math.floor((1 / btcPrice) * 100_000_000);
